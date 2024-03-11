@@ -6,10 +6,13 @@ import {
   Text,
   View,
   TextInput,
+  ImageBackground,
+  Alert,
 } from "react-native";
 import * as SQLite from "expo-sqlite";
 import { Audio } from "expo-av";
 import styles from "./Styles/Stylesheet";
+import BackgroundImage from "./assets/background.png";
 
 export default function App() {
   const [db, setDb] = useState(null);
@@ -19,6 +22,8 @@ export default function App() {
   const [modalVisible, setModalVisible] = useState(false);
   const [newRecordingName, setNewRecordingName] = useState("");
   const [recordUri, setRecordUri] = useState(null);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editingSound, setEditingSound] = useState(null);
 
   useEffect(() => {
     const db = SQLite.openDatabase("soundboard.db");
@@ -41,11 +46,7 @@ export default function App() {
 
   useEffect(() => {
     if (db) {
-      db.transaction((tx) => {
-        tx.executeSql("select * from sounds", [], (_, { rows: { _array } }) => {
-          setSounds(_array);
-        });
-      });
+      fetchSounds();
     }
   }, [db]);
 
@@ -77,12 +78,12 @@ export default function App() {
     console.log("Stopping recording..");
     if (recording) {
       await recording.stopAndUnloadAsync();
-      const uri = recording.getURI(); // Get the file path of the recording
+      const uri = recording.getURI();
       console.log("Recording stopped and stored at", uri);
-      setRecordUri(uri); // Store the URI before clearing the recording state
+      setRecordUri(uri);
       setIsRecording(false);
       setRecording(undefined);
-      setModalVisible(true); // Show the modal
+      setModalVisible(true);
     } else {
       console.log("No active recording found.");
     }
@@ -93,47 +94,37 @@ export default function App() {
       db.transaction(
         (tx) => {
           tx.executeSql(
-            "insert into sounds (name, filePath) values (?, ?)",
+            "INSERT INTO sounds (name, filePath) VALUES (?, ?);",
             [name, filePath],
-            // Callback function on successful execution
             (_, result) => {
-              console.log("Sound saved to DB", result);
-              // After saving a new sound, fetch the updated list of sounds
-              fetchSounds();
+              // Success callback
+              console.log("Sound saved:", result);
             },
-            // Error callback function
             (_, error) => {
-              console.log(error);
-              return true;
+              // Error callback
+              console.log("Error saving sound:", error);
+              return true; // Returning true rolls back the transaction on error
             }
           );
         },
         (error) => {
-          console.log("Transaction error:", error);
+          console.log("Transaction Error:", error);
         },
         () => {
-          console.log("Transaction successful, sound added");
+          console.log("Transaction Success:");
+          fetchSounds(); // Refresh your sound list
         }
       );
     }
   }
 
-  // Function to fetch sounds from the database and update the state
   function fetchSounds() {
     if (db) {
       db.transaction((tx) => {
-        tx.executeSql(
-          "select * from sounds",
-          [],
-          (_, { rows: { _array } }) => {
-            setSounds(_array); // Update the state with the fetched sounds
-            console.log("Sounds fetched from DB", _array);
-          },
-          (_, error) => {
-            console.log("Failed to fetch sounds", error);
-            return true;
-          }
-        );
+        tx.executeSql("select * from sounds", [], (_, { rows: { _array } }) => {
+          setSounds(_array);
+          console.log("Sounds fetched from DB", _array);
+        });
       });
     }
   }
@@ -144,57 +135,146 @@ export default function App() {
     await sound.playAsync();
   }
 
+  function showOptions(id) {
+    Alert.alert("Sound Options", "Choose an option", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        onPress: () => deleteSound(id),
+        style: "destructive",
+      },
+      { text: "Rename", onPress: () => promptRenameSound(id) },
+    ]);
+  }
+
+  function deleteSound(id) {
+    db.transaction(
+      (tx) => {
+        tx.executeSql("delete from sounds where id = ?", [id]);
+      },
+      null,
+      fetchSounds // Refresh the list after deleting
+    );
+  }
+
+  function promptRenameSound(id) {
+    const sound = sounds.find((sound) => sound.id === id);
+    if (sound) {
+      setEditingSound(sound);
+      setNewRecordingName(sound.name);
+      setEditModalVisible(true);
+    }
+  }
+
+  function updateSoundName() {
+    if (editingSound && newRecordingName.trim()) {
+      db.transaction(
+        (tx) => {
+          tx.executeSql("update sounds set name = ? where id = ?", [
+            newRecordingName,
+            editingSound.id,
+          ]);
+        },
+        null,
+        () => {
+          fetchSounds(); // Refresh the list after updating
+          setEditModalVisible(false);
+          setEditingSound(null);
+          setNewRecordingName("");
+        }
+      );
+    }
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Soundboard App</Text>
-      <Pressable onPress={toggleRecording} style={styles.button}>
-        <Text style={styles.buttonText}>
-          {isRecording ? "Stop Recording" : "Start Recording"}
-        </Text>
-      </Pressable>
-      <ScrollView style={styles.listArea}>
-        {sounds.map(({ id, name, filePath }) => (
+      <ImageBackground source={BackgroundImage} style={styles.backgroundImage}>
+        <View style={styles.content}>
+          <Text style={styles.title}>Soundscape</Text>
           <Pressable
-            key={id}
-            onPress={() => playSound(filePath)}
-            style={styles.button}
+            onPress={toggleRecording}
+            style={[
+              styles.button,
+              isRecording ? styles.buttonRecording : styles.buttonNotRecording,
+            ]}
           >
-            <Text style={styles.buttonText}>Play {name}</Text>
+            <Text style={styles.buttonText}>
+              {isRecording ? "Stop Recording" : "Start Recording"}
+            </Text>
           </Pressable>
-        ))}
-      </ScrollView>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => {
-          setModalVisible(!modalVisible);
-        }}
-      >
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <TextInput
-              style={styles.modalTextInput}
-              placeholder="Name your sound:"
-              value={newRecordingName}
-              onChangeText={setNewRecordingName}
-            />
-            <Pressable
-              style={[styles.button, styles.buttonClose]}
-              onPress={() => {
-                if (recordUri) {
-                  // Ensure recordUri is not null
-                  saveSoundToDb(newRecordingName || "New Sound", recordUri); // Use recordUri here
-                  setModalVisible(!modalVisible);
-                  setRecordUri(null); // Reset recordUri after saving
-                }
-              }}
-            >
-              <Text style={styles.textStyle}>Save</Text>
-            </Pressable>
-          </View>
+          <ScrollView
+            style={styles.listArea}
+            contentContainerStyle={styles.flexRow}
+          >
+            {sounds.map(({ id, name, filePath }) => (
+              <Pressable
+                key={id}
+                onPress={() => playSound(filePath)}
+                onLongPress={() => showOptions(id)}
+                style={styles.button}
+              >
+                <Text style={styles.buttonText}>{name}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={modalVisible}
+            onRequestClose={() => {
+              setModalVisible(!modalVisible);
+            }}
+          >
+            <View style={styles.centeredView}>
+              <View style={styles.modalView}>
+                <TextInput
+                  style={styles.modalTextInput}
+                  placeholder="Name your sound:"
+                  value={newRecordingName}
+                  onChangeText={setNewRecordingName}
+                />
+                <Pressable
+                  style={[styles.button, styles.buttonClose]}
+                  onPress={() => {
+                    if (recordUri) {
+                      saveSoundToDb(newRecordingName || "New Sound", recordUri);
+                      setModalVisible(!modalVisible);
+                      setRecordUri(null);
+                    }
+                  }}
+                >
+                  <Text style={styles.textStyle}>Save</Text>
+                </Pressable>
+              </View>
+            </View>
+          </Modal>
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={editModalVisible}
+            onRequestClose={() => {
+              setEditModalVisible(!editModalVisible);
+            }}
+          >
+            <View style={styles.centeredView}>
+              <View style={styles.modalView}>
+                <TextInput
+                  style={styles.modalTextInput}
+                  placeholder="Rename your sound:"
+                  value={newRecordingName}
+                  onChangeText={setNewRecordingName}
+                />
+                <Pressable
+                  style={[styles.button, styles.buttonClose]}
+                  onPress={updateSoundName}
+                >
+                  <Text style={styles.textStyle}>Update</Text>
+                </Pressable>
+              </View>
+            </View>
+          </Modal>
         </View>
-      </Modal>
+      </ImageBackground>
     </View>
   );
 }

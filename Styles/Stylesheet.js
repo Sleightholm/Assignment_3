@@ -1,24 +1,33 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, Dimensions } from "react-native";
+
+// Calculate button width based on screen size for a dynamic grid
+const numColumns = 2; // Number of columns in the grid
+const screenWidth = Dimensions.get("window").width;
+const buttonWidth = (screenWidth - 30 * (numColumns + 1)) / numColumns; // 30 is the total horizontal padding/margin
 
 export default StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+  },
+  content: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    padding: 20, // Adjusted for better spacing
+    width: "100%", // Ensures content uses the full width
+    padding: 30,
   },
-  heading: {
-    fontSize: 20,
-    fontWeight: "bold", // Corrected typo: 'fountWeight' to 'fontWeight'
+  title: {
+    fontSize: 30,
+    fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 20, // Added for spacing below the heading
+    marginTop: 60,
+    fontFamily: "monospace",
   },
   flexRow: {
     flexDirection: "row",
-    flexWrap: "wrap", // Added to allow items to wrap in a grid
-    justifyContent: "center", // Center items in each row
-    width: "100%", // Ensure it spans the full width
+    flexWrap: "wrap",
+    justifyContent: "flex-start",
+    width: "100%",
   },
   input: {
     borderColor: "#4630EB",
@@ -26,20 +35,24 @@ export default StyleSheet.create({
     borderWidth: 1,
     height: 48,
     padding: 8,
-    margin: 8, // Adjusted for consistent spacing around
-    width: "80%", // Adjust input width
+    margin: 8,
+    width: "80%",
   },
   button: {
-    // New style for buttons
-    backgroundColor: "#4630EB",
-    borderRadius: 4,
+    backgroundColor: "#rgba(16,145,49,1)",
+    borderRadius: 10,
     padding: 10,
-    margin: 8,
-    width: "40%", // Adjust button width for grid
-    alignItems: "center", // Center text inside buttons
+    margin: 10,
+    width: buttonWidth, // Set button width based on screen size for a dynamic grid
+    alignItems: "center",
+  },
+  buttonRecording: {
+    backgroundColor: "#FF6347", // Tomato color when recording
+  },
+  buttonNotRecording: {
+    backgroundColor: "rgba(16,145,49,1)", // Green color when not recording
   },
   buttonText: {
-    // Style for text inside buttons
     color: "white",
     fontWeight: "bold",
   },
@@ -48,19 +61,20 @@ export default StyleSheet.create({
     borderStyle: "solid",
     borderColor: "black",
     backgroundColor: "white",
-    padding: 10, // Added padding for content inside
-    margin: 8, // Margin to create space between grid items
-    width: "40%", // Adjust width for grid layout
-    alignItems: "center", // Center content horizontally
+    padding: 10,
+    margin: 8,
+    width: buttonWidth, // Adjust item width for grid layout to match button width
+    alignItems: "center",
   },
   itemText: {
     fontSize: 24,
   },
   listArea: {
-    backgroundColor: "lightgrey",
-    flex: 1,
+    backgroundColor: "#578bc721",
     width: "100%",
     padding: 20,
+    margin: 50,
+    borderRadius: 20,
   },
   sectionHeading: {
     fontSize: 18,
@@ -95,17 +109,17 @@ export default StyleSheet.create({
     width: "80%",
     borderRadius: 5,
   },
-  button: {
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
-  },
   buttonClose: {
-    backgroundColor: "#2196F3",
+    backgroundColor: "rgba(16,145,49,1)",
   },
   textStyle: {
     color: "white",
     fontWeight: "bold",
     textAlign: "center",
+  },
+  backgroundImage: {
+    flex: 1,
+    justifyContent: "center",
+    resizeMode: "cover",
   },
 });
