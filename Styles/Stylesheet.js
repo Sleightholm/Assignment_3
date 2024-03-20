@@ -3,12 +3,9 @@ import { StyleSheet, Dimensions } from "react-native";
 // Calculate button width based on screen size for a dynamic grid
 const numColumns = 2; // Number of columns in the grid
 const screenWidth = Dimensions.get("window").width;
-const buttonWidth = (screenWidth - 30 * (numColumns + 1)) / numColumns; // 30 is the total horizontal padding/margin
+const buttonWidth = (screenWidth - 40 * (numColumns + 1)) / numColumns; // 30 is the total horizontal padding/margin
 
 export default StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   content: {
     flex: 1,
     alignItems: "center",
@@ -21,6 +18,7 @@ export default StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     marginTop: 60,
+    marginBottom: 30,
     fontFamily: "monospace",
   },
   flexRow: {
@@ -28,15 +26,6 @@ export default StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "flex-start",
     width: "100%",
-  },
-  input: {
-    borderColor: "#4630EB",
-    borderRadius: 4,
-    borderWidth: 1,
-    height: 48,
-    padding: 8,
-    margin: 8,
-    width: "80%",
   },
   button: {
     backgroundColor: "#rgba(16,145,49,1)",
@@ -56,29 +45,12 @@ export default StyleSheet.create({
     color: "white",
     fontWeight: "bold",
   },
-  itemStyle: {
-    borderWidth: 2,
-    borderStyle: "solid",
-    borderColor: "black",
-    backgroundColor: "white",
-    padding: 10,
-    margin: 8,
-    width: buttonWidth, // Adjust item width for grid layout to match button width
-    alignItems: "center",
-  },
-  itemText: {
-    fontSize: 24,
-  },
   listArea: {
     backgroundColor: "#578bc721",
     width: "100%",
-    padding: 20,
+    padding: 10,
     margin: 50,
     borderRadius: 20,
-  },
-  sectionHeading: {
-    fontSize: 18,
-    marginBottom: 8,
   },
   centeredView: {
     flex: 1,
@@ -109,17 +81,12 @@ export default StyleSheet.create({
     width: "80%",
     borderRadius: 5,
   },
-  buttonClose: {
-    backgroundColor: "rgba(16,145,49,1)",
-  },
-  textStyle: {
-    color: "white",
-    fontWeight: "bold",
-    textAlign: "center",
-  },
   backgroundImage: {
     flex: 1,
     justifyContent: "center",
     resizeMode: "cover",
+    width: '100%',
+    height: '105%',
+    position: 'absolute',
   },
 });

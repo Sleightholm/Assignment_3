@@ -8,11 +8,14 @@ import {
   TextInput,
   ImageBackground,
   Alert,
+  Image,
 } from "react-native";
 import * as SQLite from "expo-sqlite";
 import { Audio } from "expo-av";
-import styles from "./Styles/Stylesheet";
-import BackgroundImage from "./assets/background.png";
+import { Link } from "expo-router";
+import styles from "../Styles/Stylesheet";
+import BackgroundImage from "../assets/background.png";
+import homeImage from "../assets/home.png";
 
 export default function App() {
   const [db, setDb] = useState(null);
@@ -187,94 +190,107 @@ export default function App() {
   }
 
   return (
-    <View style={styles.container}>
-      <ImageBackground source={BackgroundImage} style={styles.backgroundImage}>
-        <View style={styles.content}>
-          <Text style={styles.title}>Soundscape</Text>
-          <Pressable
-            onPress={toggleRecording}
-            style={[
-              styles.button,
-              isRecording ? styles.buttonRecording : styles.buttonNotRecording,
-            ]}
-          >
-            <Text style={styles.buttonText}>
-              {isRecording ? "Stop Recording" : "Start Recording"}
-            </Text>
+    <ImageBackground source={BackgroundImage} style={styles.backgroundImage}>
+      <View style={styles.content}>
+        <Text style={styles.title}>Custom Soundboard</Text>
+        <Link
+          style={({ pressed }) => [
+            styles.button,
+            pressed ? styles.buttonRecording : {}, // Dynamically changes style when pressed
+          ]}
+          href={{ pathname: "/" }}
+          asChild
+        >
+          <Pressable>
+            <Image source={homeImage} style={{ width: 40, height: 40 }} />
           </Pressable>
-          <ScrollView
-            style={styles.listArea}
-            contentContainerStyle={styles.flexRow}
-          >
-            {sounds.map(({ id, name, filePath }) => (
+        </Link>
+        <Pressable
+          onPress={toggleRecording}
+          style={[
+            styles.button,
+            isRecording ? styles.buttonRecording : styles.button,
+          ]}
+        >
+          <Text style={styles.buttonText}>
+            {isRecording ? "Stop Recording" : "Start Recording"}
+          </Text>
+        </Pressable>
+        <ScrollView
+          style={styles.listArea}
+          contentContainerStyle={styles.flexRow}
+        >
+          {sounds.map(({ id, name, filePath }) => (
+            <Pressable
+              key={id}
+              onPress={() => playSound(filePath)}
+              onLongPress={() => showOptions(id)}
+              style={({ pressed }) => [
+                styles.button,
+                pressed ? styles.buttonRecording : {}, // Dynamically changes style when pressed
+              ]}
+            >
+              <Text style={styles.buttonText}>{name}</Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => {
+            setModalVisible(!modalVisible);
+          }}
+        >
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <TextInput
+                style={styles.modalTextInput}
+                placeholder="Name your sound:"
+                value={newRecordingName}
+                onChangeText={setNewRecordingName}
+              />
               <Pressable
-                key={id}
-                onPress={() => playSound(filePath)}
-                onLongPress={() => showOptions(id)}
-                style={styles.button}
+                style={[styles.button, styles.button]}
+                onPress={() => {
+                  if (recordUri) {
+                    saveSoundToDb(newRecordingName || "New Sound", recordUri);
+                    setModalVisible(!modalVisible);
+                    setRecordUri(null);
+                  }
+                }}
               >
-                <Text style={styles.buttonText}>{name}</Text>
+                <Text style={styles.textStyle}>Save</Text>
               </Pressable>
-            ))}
-          </ScrollView>
-          <Modal
-            animationType="slide"
-            transparent={true}
-            visible={modalVisible}
-            onRequestClose={() => {
-              setModalVisible(!modalVisible);
-            }}
-          >
-            <View style={styles.centeredView}>
-              <View style={styles.modalView}>
-                <TextInput
-                  style={styles.modalTextInput}
-                  placeholder="Name your sound:"
-                  value={newRecordingName}
-                  onChangeText={setNewRecordingName}
-                />
-                <Pressable
-                  style={[styles.button, styles.buttonClose]}
-                  onPress={() => {
-                    if (recordUri) {
-                      saveSoundToDb(newRecordingName || "New Sound", recordUri);
-                      setModalVisible(!modalVisible);
-                      setRecordUri(null);
-                    }
-                  }}
-                >
-                  <Text style={styles.textStyle}>Save</Text>
-                </Pressable>
-              </View>
             </View>
-          </Modal>
-          <Modal
-            animationType="slide"
-            transparent={true}
-            visible={editModalVisible}
-            onRequestClose={() => {
-              setEditModalVisible(!editModalVisible);
-            }}
-          >
-            <View style={styles.centeredView}>
-              <View style={styles.modalView}>
-                <TextInput
-                  style={styles.modalTextInput}
-                  placeholder="Rename your sound:"
-                  value={newRecordingName}
-                  onChangeText={setNewRecordingName}
-                />
-                <Pressable
-                  style={[styles.button, styles.buttonClose]}
-                  onPress={updateSoundName}
-                >
-                  <Text style={styles.textStyle}>Update</Text>
-                </Pressable>
-              </View>
+          </View>
+        </Modal>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={editModalVisible}
+          onRequestClose={() => {
+            setEditModalVisible(!editModalVisible);
+          }}
+        >
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <TextInput
+                style={styles.modalTextInput}
+                placeholder="Rename your sound:"
+                value={newRecordingName}
+                onChangeText={setNewRecordingName}
+              />
+              <Pressable
+                style={[styles.button, styles.button]}
+                onPress={updateSoundName}
+              >
+                <Text style={styles.textStyle}>Update</Text>
+              </Pressable>
             </View>
-          </Modal>
-        </View>
-      </ImageBackground>
-    </View>
+          </View>
+        </Modal>
+      </View>
+    </ImageBackground>
   );
 }
