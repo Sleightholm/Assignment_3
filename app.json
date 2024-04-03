@@ -1,27 +1,32 @@
 {
   "expo": {
-    "name": "Assignment_3",
-    "slug": "Assignment_3",
+    "name": "Soundboard",
+    "slug": "ethansleightholm-soundboard",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
-      "resizeMode": "contain",
+      "resizeMode": "cover",
       "backgroundColor": "#ffffff"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ethansleightholm.soundboard",
+      "buildNumber": "1.0.0"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      }
+        "backgroundColor": "#000000"
+      },
+      "package": "com.ethansleightholm.soundboard",
+      "versionCode": 1000,
+      "versionName": "1.0.0"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -29,6 +34,14 @@
     "plugins": [
       "expo-router"
     ],
-    "scheme": "router-demo"
+    "scheme": "router-demo",
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "8efc5721-07ab-47da-94da-8f48bc651d91"
+      }
+    }
   }
 }
