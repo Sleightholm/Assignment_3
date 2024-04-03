@@ -25,8 +25,7 @@
         "backgroundColor": "#000000"
       },
       "package": "com.ethansleightholm.soundboard",
-      "versionCode": 1000,
-      "versionName": "1.0.0"
+      "versionCode": 1000
     },
     "web": {
       "favicon": "./assets/favicon.png"

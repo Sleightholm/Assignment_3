@@ -28,6 +28,7 @@ export default function App() {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingSound, setEditingSound] = useState(null);
 
+  // Initialize the database
   useEffect(() => {
     const db = SQLite.openDatabase("soundboard.db");
     setDb(db);
@@ -47,12 +48,14 @@ export default function App() {
     fetchSounds(); // Fetch sounds when the app loads
   }, []);
 
+  // Fetch sounds when the database is ready
   useEffect(() => {
     if (db) {
       fetchSounds();
     }
   }, [db]);
 
+  // Toggle recording
   async function toggleRecording() {
     if (isRecording) {
       await stopRecording();
@@ -61,6 +64,7 @@ export default function App() {
     }
   }
 
+  // Start recording
   async function startRecording() {
     console.log("Requesting permissions..");
     await Audio.requestPermissionsAsync();
@@ -77,6 +81,7 @@ export default function App() {
     console.log("Recording started");
   }
 
+  // Stop recording
   async function stopRecording() {
     console.log("Stopping recording..");
     if (recording) {
@@ -92,6 +97,7 @@ export default function App() {
     }
   }
 
+  // Save sound to database
   function saveSoundToDb(name, filePath) {
     if (db) {
       db.transaction(
@@ -115,12 +121,13 @@ export default function App() {
         },
         () => {
           console.log("Transaction Success:");
-          fetchSounds(); // Refresh your sound list
+          fetchSounds(); // Refresh sound list
         }
       );
     }
   }
 
+  // Fetch sounds from the database
   function fetchSounds() {
     if (db) {
       db.transaction((tx) => {
@@ -132,12 +139,14 @@ export default function App() {
     }
   }
 
+  // Play sound from file path
   async function playSound(filePath) {
     console.log("Loading Sound");
     const { sound } = await Audio.Sound.createAsync({ uri: filePath });
     await sound.playAsync();
   }
 
+  // Show options for a sound
   function showOptions(id) {
     Alert.alert("Sound Options", "Choose an option", [
       { text: "Cancel", style: "cancel" },
@@ -150,6 +159,7 @@ export default function App() {
     ]);
   }
 
+  // Delete sound from database
   function deleteSound(id) {
     db.transaction(
       (tx) => {
@@ -160,6 +170,7 @@ export default function App() {
     );
   }
 
+  // Prompt to rename a sound
   function promptRenameSound(id) {
     const sound = sounds.find((sound) => sound.id === id);
     if (sound) {
@@ -169,6 +180,7 @@ export default function App() {
     }
   }
 
+  // Update sound name
   function updateSoundName() {
     if (editingSound && newRecordingName.trim()) {
       db.transaction(
